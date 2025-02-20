@@ -1,0 +1,3 @@
+The "Personalized_Assessment_Generating_AI" project comprises several files designed to create tailored math assignments for high school students struggling with math by leveraging their unique interests. For security reasons, my OpenAI API keys have been removed, and the file paths in Main_LLM_File.py and app.py have been left blank. A sample video ("Sample_Video.mov") demonstrates the platform’s interface. Once the correct path and OpenAI key are provided, you can launch the entire application by simply running app.py from the terminal.
+
+Additionally, the "Dissertation_Research_Code.R" file serves as a supplementary script for the writing sample, outlining the complete research process—from data wrangling to analysis.
