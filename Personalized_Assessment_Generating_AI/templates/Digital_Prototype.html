@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Math Assignment Generator</title>
+    <style>
+        /* Basic Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Background and container styling */
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #f2f7ff, #d1e7ff);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 40px;
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+            position: relative;
+        }
+
+        /* Heading styles */
+        h1 {
+            color: #4a90e2;
+            font-size: 2em;
+            margin-bottom: 0.5em;
+        }
+
+        h2 {
+            color: #333;
+            font-size: 1.5em;
+            margin-top: 1.5em;
+        }
+
+        /* Form styling */
+        form label {
+            display: block;
+            font-weight: bold;
+            margin: 10px 0 5px;
+            color: #4a90e2;
+        }
+
+        form input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        form button {
+            background-color: #4a90e2;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1em;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        form button:hover {
+            background-color: #357ab8;
+        }
+
+        /* Download buttons styling */
+        .download-buttons a {
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+        }
+
+        .download-buttons button {
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1em;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .download-buttons button:hover {
+            background-color: #218838;
+        }
+
+        /* Loading overlay styling */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s;
+        }
+
+        .loading-overlay.visible {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .loading-overlay .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #ddd;
+            border-top: 5px solid #4a90e2;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        .loading-overlay .tip {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 500px;
+            font-size: 1em;
+            color: #333;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        /* Spinner animation */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Fade-in animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AI Math Assignment Generator</h1>
+        <form method="POST" onsubmit="showLoading()">
+            <label for="grade">Enter Student's Grade:</label>
+            <input type="text" id="grade" name="grade" required>
+
+            <label for="concept">Enter Mathematical Concept:</label>
+            <input type="text" id="concept" name="concept" required>
+
+            <label for="interest">Enter Student's Interest:</label>
+            <input type="text" id="interest" name="interest" required>
+
+            <label for="name">Enter Student's Name:</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="additional">Enter Additional Student Information/Instruction:</label>
+            <input type="text" id="additional" name="additional">
+
+            <button type="submit">Generate Assignment and Solution</button>
+        </form>
+
+        {% if result_task %}
+            <h2>Generated Assignment</h2>
+            <div class="download-buttons">
+                <a href="{{ url_for('static', filename=task_name) }}" download=task_name>
+                    <button type="button">Download Assignment PDF</button>
+                </a>
+            </div>
+        {% endif %}
+
+        {% if result_solution %}
+            <h2>Generated Solution</h2>
+            <div class="download-buttons">
+                <a href="{{ url_for('static', filename=solution_name) }}" download=solution_name>
+                    <button type="button">Download Solution PDF</button>
+                </a>
+            </div>
+        {% endif %}
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="spinner"></div>
+            <div class="tip" id="tipText"></div>
+        </div>
+    </div>
+
+    <script>
+
+
+        const tips = {
+            Calculus: "Encourage students to visualize concepts by sketching graphs and using real-world applications, like measuring rates of change in natural phenomena. Make connections between derivatives, integrals, and real-life scenarios to build a solid conceptual understanding. Provide practice with incremental steps, gradually moving from concrete examples to more abstract problems.",
+            Geometry: "Start by relating geometric concepts to tangible objects around students, like shapes in architecture or art. Use hands-on activities or digital tools to explore properties of shapes, angles, and transformations. Foster a collaborative environment where students can solve problems in pairs or groups, encouraging discussion and shared reasoning.",
+            Precalculus: "Frame precalculus as a bridge between algebra and calculus, emphasizing its role in understanding change and motion. Use practical examples, such as modeling real-world systems, to illustrate the importance of functions and trigonometry. Guide students through solving and graphing a variety of functions to build confidence in analyzing complex equations.",
+            Complex_Plane: "Begin with a review of imaginary numbers and their properties to establish a foundation. Use visual aids to help students understand the complex plane as an extension of the number line, with real and imaginary components. Integrate graphing exercises to build students' intuition about the behavior of complex numbers and operations in this new space.",
+            Polynomials: "Relate polynomials to familiar concepts, like linear and quadratic functions, and build up from there. Use graphing tools to help students understand how changing coefficients affects the shape and position of polynomial graphs. Encourage them to practice factoring and solving polynomials of increasing degrees to see the patterns and relationships within.",
+            Quadratic_Equations: "Make connections between quadratic equations and real-world examples, such as parabolic motion in physics. Help students recognize different forms of quadratic equations and when to apply each method (factoring, completing the square, quadratic formula). Use graphing calculators or apps to visualize parabolas, reinforcing connections between algebraic and graphical representations.",
+            Algebra: "Emphasize algebra as a toolkit for solving problems and finding unknowns in everyday situations. Reinforce the idea that equations are balanced and that operations performed on one side should be done to the other. Start with simple equations and gradually introduce more variables and complexity to build confidence.",
+            Statistics: "Use relatable data sets, like student-preferred activities or local weather patterns, to introduce basic concepts. Encourage students to interpret data by calculating mean, median, mode, and discussing what these measures reveal. Teach them to use charts and graphs as visual aids, which can make abstract statistical concepts more concrete.",
+            Probability: "Use real-world examples, like games of chance, to help students understand the basics of probability. Introduce probability experiments and simulations to help students see the outcomes and probability patterns. Emphasize how probability connects to making predictions and informed decisions in uncertain situations.",
+            Trigonometry: "Connect trigonometric concepts to real-life applications, such as measuring heights and distances or analyzing sound waves. Use interactive tools or drawing exercises to demonstrate the relationships in right triangles and the unit circle. Reinforce understanding by practicing with different types of problems that involve angles and triangle properties."
+        }
+
+        function showLoading(event) {
+            const concept = document.getElementById('concept').value;
+            // Check if a tip exists for the entered concept
+            const overlay = document.getElementById("loadingOverlay");
+            const tipText = document.getElementById("tipText");
+
+            if (tips[concept]) {
+                tipText.textContent = tips[concept];
+            } else {
+                tipText.textContent = "No tips available for this concept.";
+            }
+
+            overlay.classList.add("visible");
+        }
+
+
+
+    </script>
+</body>
+</html>
